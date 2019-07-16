@@ -22,6 +22,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -37,6 +38,8 @@ import static org.bukkit.ChatColor.GRAY;
 import static org.bukkit.ChatColor.WHITE;
 
 public final class AdvancementsCounter extends JavaPlugin implements Listener {
+
+    private static final DecimalFormat PERCENT_FORMAT = new DecimalFormat("##.#");
 
     private File dataFile;
     private Gson gson;
@@ -121,7 +124,8 @@ public final class AdvancementsCounter extends JavaPlugin implements Listener {
         int advancementCount = this.calculateAdvancementCount(player);
         this.doneAdvancements.put(uuid, advancementCount);
 
-        int percent = this.getAdvancementPercent(uuid);
+        float percent = this.getAdvancementPercent(uuid);
+        String percentStr = PERCENT_FORMAT.format(percent);
 
         Bukkit.getOnlinePlayers().forEach(this::updateScoreboard);
 
@@ -136,7 +140,7 @@ public final class AdvancementsCounter extends JavaPlugin implements Listener {
                         GRAY + "[" + GOLD + "Advancements" + GRAY + "] " +
                                 AQUA + player.getName() + WHITE + " -> " +
                                 AQUA + advancementCount + GRAY + "/" + AQUA + AdvancementsCounter.this.totalAdvancements +
-                                GRAY + " (" + DARK_AQUA + percent + WHITE + "%)"
+                                GRAY + " (" + DARK_AQUA + percentStr + WHITE + "%)"
                 );
             }
         };
@@ -200,10 +204,12 @@ public final class AdvancementsCounter extends JavaPlugin implements Listener {
                 playerName = BOLD + playerName;
             }
 
-            int percent = this.getAdvancementPercent(entry.getKey());
+            float percent = this.getAdvancementPercent(entry.getKey());
+            String percentStr = PERCENT_FORMAT.format(percent);
 
             board.set(
-                    GOLD + String.valueOf(i + 1) + GRAY + " (" + GOLD + percent + GRAY + "%)" + " | " + WHITE + playerName,
+                    GOLD + String.valueOf(i + 1) + GRAY
+                            + " (" + GOLD + percentStr + GRAY + "%)" + " | " + WHITE + playerName,
                     16 - i
             );
         }
@@ -237,8 +243,8 @@ public final class AdvancementsCounter extends JavaPlugin implements Listener {
         return doneAdvancements;
     }
 
-    private int getAdvancementPercent(UUID uuid) {
-        return (int) (100.0 * this.doneAdvancements.get(uuid) / totalAdvancements);
+    private float getAdvancementPercent(UUID uuid) {
+        return 100f * this.doneAdvancements.get(uuid) / totalAdvancements;
     }
 
 }
