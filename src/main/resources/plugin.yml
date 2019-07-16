@@ -1,0 +1,6 @@
+name: AdvancementsCounter
+version: @version@
+main: fr.minuskube.advancements.AdvancementsCounter
+api-version: "1.14"
+authors: [MinusKube]
+depend: [Netherboard]
