@@ -4,3 +4,7 @@ main: fr.minuskube.advancements.AdvancementsCounter
 api-version: "1.14"
 authors: [MinusKube]
 depend: [Netherboard]
+commands:
+  criteria:
+    description: Shows the criteria for a given advancement
+    aliases: [crit]

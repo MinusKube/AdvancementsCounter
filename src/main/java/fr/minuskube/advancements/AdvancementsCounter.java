@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import fr.minuskube.netherboard.Netherboard;
 import fr.minuskube.netherboard.bukkit.BPlayerBoard;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.craftbukkit.v1_14_R1.advancement.CraftAdvancement;
@@ -35,11 +36,13 @@ import static org.bukkit.ChatColor.BOLD;
 import static org.bukkit.ChatColor.DARK_AQUA;
 import static org.bukkit.ChatColor.GOLD;
 import static org.bukkit.ChatColor.GRAY;
+import static org.bukkit.ChatColor.UNDERLINE;
 import static org.bukkit.ChatColor.WHITE;
+import static org.bukkit.ChatColor.YELLOW;
 
 public final class AdvancementsCounter extends JavaPlugin implements Listener {
 
-    private static final DecimalFormat PERCENT_FORMAT = new DecimalFormat("##.#");
+    private static final DecimalFormat PERCENT_FORMAT = new DecimalFormat("00.0");
 
     private File dataFile;
     private Gson gson;
@@ -74,6 +77,10 @@ public final class AdvancementsCounter extends JavaPlugin implements Listener {
                 this, this::saveAdvancements,
                 20 * 5 * 60, 20 * 5 * 60
         );
+
+        CriteriaCommand command = new CriteriaCommand(this);
+        this.getCommand("criteria").setExecutor(command);
+        this.getCommand("criteria").setTabCompleter(command);
 
         this.getLogger().info("Loaded " + this.totalAdvancements + " advancements!");
     }
@@ -200,15 +207,20 @@ public final class AdvancementsCounter extends JavaPlugin implements Listener {
             Map.Entry<UUID, Integer> entry = sortedEntries.get(i);
             String playerName = Bukkit.getOfflinePlayer(entry.getKey()).getName();
 
+            if(player.getUniqueId().equals(entry.getKey())) {
+                playerName = UNDERLINE.toString() + BOLD + playerName;
+            }
+
             if(i == 0) {
-                playerName = BOLD + playerName;
+                playerName = YELLOW + playerName;
             }
 
             float percent = this.getAdvancementPercent(entry.getKey());
             String percentStr = PERCENT_FORMAT.format(percent);
 
+
             board.set(
-                    GOLD + String.valueOf(i + 1) + GRAY
+                    GOLD + StringUtils.leftPad(String.valueOf(i + 1), 2) + GRAY
                             + " (" + GOLD + percentStr + GRAY + "%)" + " | " + WHITE + playerName,
                     16 - i
             );
@@ -219,13 +231,13 @@ public final class AdvancementsCounter extends JavaPlugin implements Listener {
         Netherboard.instance().deleteBoard(player);
     }
 
-    private boolean isAdvancementValid(Advancement advancement) {
+    public boolean isAdvancementValid(Advancement advancement) {
         net.minecraft.server.v1_14_R1.Advancement nmsAdvancement = ((CraftAdvancement) advancement).getHandle();
 
         return nmsAdvancement.c() != null;
     }
 
-    private int calculateAdvancementCount(Player player) {
+    public int calculateAdvancementCount(Player player) {
         int doneAdvancements = 0;
 
         for(Iterator<Advancement> iter = Bukkit.advancementIterator(); iter.hasNext(); ) {
@@ -243,7 +255,7 @@ public final class AdvancementsCounter extends JavaPlugin implements Listener {
         return doneAdvancements;
     }
 
-    private float getAdvancementPercent(UUID uuid) {
+    public float getAdvancementPercent(UUID uuid) {
         return 100f * this.doneAdvancements.get(uuid) / totalAdvancements;
     }
 
